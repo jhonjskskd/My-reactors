@@ -1,11 +1,13 @@
 {
-  "name": "telegram-bot-reactions",
+  "name": "telegram-poster-reactor",
   "version": "1.0.0",
-  "description": "Script to make multiple bots react to a Telegram channel message",
-  "main": "react.js",
+  "description": "Post predictions on schedule and have multiple bots react automatically",
+  "main": "scheduler.js",
   "scripts": {
-    "react": "node --env-file .env react.js"
+    "start": "node scheduler.js"
   },
-  "author": "",
-  "license": "MIT"
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "node-cron": "^3.0.2"
+  }
 }
