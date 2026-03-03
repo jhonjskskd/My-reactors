@@ -1,0 +1,11 @@
+{
+  "name": "telegram-bot-reactions",
+  "version": "1.0.0",
+  "description": "Script to make multiple bots react to a Telegram channel message",
+  "main": "react.js",
+  "scripts": {
+    "react": "node --env-file .env react.js"
+  },
+  "author": "",
+  "license": "MIT"
+}
