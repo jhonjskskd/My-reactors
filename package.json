@@ -1,13 +1,12 @@
-{
-  "name": "telegram-poster-reactor",
-  "version": "1.0.0",
-  "description": "Post predictions on schedule and have multiple bots react automatically",
-  "main": "scheduler.js",
-  "scripts": {
-    "start": "node scheduler.js"
-  },
-  "dependencies": {
-    "dotenv": "^16.0.0",
-    "node-cron": "^3.0.2"
+// api/run.js
+const { postAndReactCycle } = require("../scheduler");
+
+module.exports = async (req, res) => {
+  try {
+    const result = await postAndReactCycle();
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Run API error:", err);
+    res.status(500).json({ ok: false, error: String(err) });
   }
-}
+};
