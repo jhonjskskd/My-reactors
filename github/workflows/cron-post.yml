@@ -1,0 +1,13 @@
+name: hourly-post
+on:
+  schedule:
+    - cron: '0 * * * *'   # every hour at minute 0 (UTC)
+jobs:
+  call_api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Vercel post endpoint
+        run: |
+          echo "Calling Vercel..."
+          curl -s -X POST "https://YOUR_PROJECT_NAME.vercel.app/api/run" -o /tmp/post_resp.json
+          cat /tmp/post_resp.json
