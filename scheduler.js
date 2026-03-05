@@ -1,11 +1,10 @@
 // scheduler.js
-// Node 18+ script — posts a message (text or images) and then makes other bots react.
-// Uses dotenv + node-cron. Keep your real tokens in .env (never commit .env).
+// CommonJS module: exports postAndReactCycle()
+// Uses global fetch (Node 18+) and process.env for configuration.
 
 require('dotenv').config();
-const cron = require('node-cron');
 
-// CONFIG from .env
+// CONFIG from environment
 const POST_BOT = process.env.BOT_TOKEN_POSTER;
 const REACT_BOTS = (process.env.BOT_TOKENS || "")
   .split(',')
@@ -25,13 +24,11 @@ const EMOJIS = (process.env.EMOJIS || "🔥,👍,💯")
   .filter(Boolean);
 
 const DELAY_MS = parseInt(process.env.DELAY_MS || "400", 10);
-const CRON_EXPR = process.env.CRON_EXPR || "0 * * * *"; // default: every hour
-const TIMEZONE = process.env.TIMEZONE || "UTC";
 
-// helper: sleep
-function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+// helper
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// helper: call Telegram Bot API
+// Telegram API helper
 async function tgApi(token, method, body) {
   const url = `https://api.telegram.org/bot${token}/${method}`;
   const res = await fetch(url, {
@@ -43,14 +40,14 @@ async function tgApi(token, method, body) {
   return json;
 }
 
-// post prediction; returns message_id or null
+// Post the prediction and return message_id (or null)
 async function postPrediction() {
-  if (!POST_BOT) throw new Error("BOT_TOKEN_POSTER not set in .env");
-  if (!CHAT_ID) throw new Error("CHAT_ID not set in .env");
+  if (!POST_BOT) throw new Error("BOT_TOKEN_POSTER not set in environment");
+  if (!CHAT_ID) throw new Error("CHAT_ID not set in environment");
 
   try {
     if (IMAGE_URLS.length > 1) {
-      // sendMediaGroup: first item holds caption
+      // sendMediaGroup
       const media = IMAGE_URLS.map((url, i) => {
         const item = { type: "photo", media: url };
         if (i === 0) item.caption = PREDICTION_TEXT;
@@ -94,7 +91,7 @@ async function postPrediction() {
   }
 }
 
-// make reactions using each reactor bot
+// Make reactions using reactor bots
 async function reactToMessage(messageId) {
   if (!messageId) throw new Error("messageId required to react");
   for (const token of REACT_BOTS) {
@@ -119,28 +116,18 @@ async function reactToMessage(messageId) {
   }
 }
 
-// full cycle
+// Exported function: one full cycle (post + react)
 async function postAndReactCycle() {
   console.log(new Date().toISOString(), "Start cycle");
   const msgId = await postPrediction();
   if (!msgId) {
     console.error("Failed to post — skipping reactions");
-    return;
+    return { ok: false, error: "post failed" };
   }
   console.log("Posted message id:", msgId);
   await reactToMessage(msgId);
   console.log(new Date().toISOString(), "Cycle finished");
+  return { ok: true, message_id: msgId };
 }
 
-// run once immediately and schedule
-if (require.main === module) {
-  console.log("Scheduler starting. CRON:", CRON_EXPR, "TZ:", TIMEZONE);
-  postAndReactCycle().catch(err => console.error("Immediate run error:", err));
-
-  cron.schedule(CRON_EXPR, () => {
-    postAndReactCycle().catch(err => console.error("Scheduled run error:", err));
-  }, {
-    scheduled: true,
-    timezone: TIMEZONE
-  });
-}
+module.exports = { postAndReactCycle };
