@@ -1,12 +1,23 @@
 // api/run.js
+
 const { postAndReactCycle } = require("../scheduler");
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     const result = await postAndReactCycle();
-    res.status(200).json(result);
+
+    return res.status(200).json({
+      ok: true,
+      message: "Bot executed successfully",
+      result
+    });
+
   } catch (err) {
     console.error("Run API error:", err);
-    res.status(500).json({ ok: false, error: String(err) });
+
+    return res.status(500).json({
+      ok: false,
+      error: String(err)
+    });
   }
-};
+}
